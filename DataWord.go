@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"math/bits"
+	"strconv"
 )
 
 const size = 8
@@ -13,12 +15,32 @@ func newDataWord() *DataWord {
 }
 
 func (x *DataWord) setDataWord(byteArr []byte) {
-
 	for i, j := 0, 0; i < size; i++ {
 		for lShift := 0; lShift < 4; lShift, j = lShift+1, j+1 {
-			(*x)[i] = (*x)[i] | (byteArr[j] << (lShift * 8))
+			(*x)[i] = (*x)[i] | (uint32(byteArr[j]) << (uint32(lShift) * 8))
 		}
 	}
+}
+
+func (x *DataWord) dataWordToBinary() string {
+	result := ""
+	for word := 0; word < len(x); word++ {
+		for bit := 0; bit < 32; bit++ {
+
+			if x[word]&(1<<bit) == 0 {
+				result = "0" + result
+			} else {
+				result = "1" + result
+			}
+		}
+	}
+	return result
+}
+
+func (x *DataWord) toStringHex() string {
+	newX := x.dataWordToBinary()
+	xInHex, _ := strconv.ParseInt(newX, 2, 64)
+	return fmt.Sprintf("%x", xInHex)
 }
 
 func (x *DataWord) toInt() uint32 {
@@ -29,20 +51,22 @@ func (x *DataWord) setUint32(a uint32, i uint) {
 	x[i] = a
 }
 
-func (x *DataWord) Add(y *DataWord) (result *DataWord) {
+func (x *DataWord) Add(y *DataWord) *DataWord {
 	var carry uint32 = 0
+	result := newDataWord()
 	for i := 0; i < len(result); i++ {
-		result[0], carry = bits.Add32(x[0], y[0], carry)
+		result[i], carry = bits.Add32(x[i], y[i], carry)
 	}
-	return
+	return result
 }
 
-func (x *DataWord) Sub(y *DataWord) (result *DataWord) {
+func (x *DataWord) Sub(y *DataWord) *DataWord {
 	var borrow uint32 = 0
+	result := newDataWord()
 	for i := 0; i < len(result); i++ {
 		result[i], borrow = bits.Sub32(x[i], y[i], borrow)
 	}
-	return
+	return result
 }
 
 func (x *DataWord) Multiply(y *DataWord) (*DataWord, bool) {
@@ -163,20 +187,20 @@ func (x *DataWord) IsZero() bool {
 	return true
 }
 
-func (x *DataWord) And(y *DataWord) (result *DataWord) {
-
+func (x *DataWord) And(y *DataWord) *DataWord {
+	result := newDataWord()
 	for i := 0; i < len(x); i++ {
 		result[i] = x[i] & y[i]
 	}
-	return
+	return result
 }
 
-func (x *DataWord) Or(y *DataWord) (result *DataWord) {
-
+func (x *DataWord) Or(y *DataWord) *DataWord {
+	result := newDataWord()
 	for i := 0; i < len(x); i++ {
-		x[i] = x[i] | y[i]
+		result[i] = x[i] | y[i]
 	}
-	return
+	return result
 }
 
 func (x *DataWord) Not() (result *DataWord) {
@@ -187,10 +211,10 @@ func (x *DataWord) Not() (result *DataWord) {
 	return
 }
 
-func (x *DataWord) Xor(y *DataWord) (result *DataWord) {
-
+func (x *DataWord) Xor(y *DataWord) *DataWord {
+	result := newDataWord()
 	for i := 0; i < len(x); i++ {
 		result[i] = x[i] ^ y[i]
 	}
-	return
+	return result
 }

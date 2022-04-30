@@ -1,10 +1,9 @@
 package main
 
-type OperationInfo struct {
-	basicOperation BasicOperation
-	pushOperation  PushOperation
-	stackArgsCount uint // number of arguments needed for the operation
-	gasPrice       uint
+type Operation struct {
+	execute        OperationType
+	stackArgsCount int // number of arguments needed for the operation
+	gasPrice       uint64
 	pcJump         uint
 }
 
@@ -18,84 +17,88 @@ const (
 	onePCJump = 1
 )
 
-type InstructionMap *[100]OperationInfo
+type OperationMapping [100]Operation
 
-func newInstructionInfo() (oppArray *InstructionMap) {
-
+func newInstructionInfo() *OperationMapping {
+	var oppArray = new(OperationMapping)
 	(*oppArray)[ADD] =
-		OperationInfo{
-			basicOperation: AddOP,
+		Operation{
+			execute:        AddOP,
 			stackArgsCount: 2,
 			gasPrice:       lowGasPrice,
 			pcJump:         onePCJump,
 		}
-	(*oppArray)[SUB] = OperationInfo{
-		basicOperation: SubOP,
+	(*oppArray)[SUB] = Operation{
+		execute:        SubOP,
 		stackArgsCount: 2,
 		gasPrice:       lowGasPrice,
 		pcJump:         onePCJump,
 	}
-	(*oppArray)[MUL] = OperationInfo{
-		basicOperation: MulOP,
+	(*oppArray)[MUL] = Operation{
+		execute:        MulOP,
 		stackArgsCount: 2,
 		gasPrice:       midGasPrice,
 		pcJump:         onePCJump,
 	}
-	(*oppArray)[DIV] = OperationInfo{}
-	(*oppArray)[GT] = OperationInfo{
-		basicOperation: GreaterOp,
+	(*oppArray)[DIV] = Operation{}
+	(*oppArray)[GT] = Operation{
+		execute:        GreaterOp,
 		stackArgsCount: 2,
 		gasPrice:       lowGasPrice,
 		pcJump:         onePCJump,
 	}
-	(*oppArray)[OR] = OperationInfo{
-		basicOperation: OrOP,
+	(*oppArray)[OR] = Operation{
+		execute:        OrOP,
 		stackArgsCount: 2,
 		gasPrice:       lowGasPrice,
 		pcJump:         onePCJump,
 	}
-	(*oppArray)[XOR] = OperationInfo{
-		basicOperation: XorOP,
+	(*oppArray)[XOR] = Operation{
+		execute:        XorOP,
 		stackArgsCount: 2,
 		gasPrice:       lowGasPrice,
 		pcJump:         onePCJump,
 	}
-	(*oppArray)[AND] = OperationInfo{
-		basicOperation: AndOP,
+	(*oppArray)[AND] = Operation{
+		execute:        AndOP,
 		stackArgsCount: 2,
 		gasPrice:       lowGasPrice,
 		pcJump:         onePCJump,
 	}
-	(*oppArray)[NOT] = OperationInfo{
-		basicOperation: NotOP,
+	(*oppArray)[NOT] = Operation{
+		execute:        NotOP,
 		stackArgsCount: 2,
 		gasPrice:       lowGasPrice,
 		pcJump:         onePCJump,
 	}
-	(*oppArray)[PUSH] = OperationInfo{
-		pushOperation:  PushOp,
+	(*oppArray)[PUSH] = Operation{
+		execute:        PushOp,
 		stackArgsCount: 0,
 		gasPrice:       lowGasPrice,
 		pcJump:         33,
 	}
-	(*oppArray)[POP] = OperationInfo{
-		basicOperation: PopOp,
+	(*oppArray)[POP] = Operation{
+		execute:        PopOp,
 		stackArgsCount: 0,
 		gasPrice:       lowGasPrice,
 		pcJump:         1,
 	}
 
-	(*oppArray)[MSTORE] = OperationInfo{
-		basicOperation: MStoreOp,
+	(*oppArray)[MSTORE] = Operation{
+		execute:        MStoreOp,
 		stackArgsCount: 2,
 		gasPrice:       midGasPrice,
 		pcJump:         1,
 	}
-	(*oppArray)[MLOAD] = OperationInfo{
-		basicOperation: MLoadOp,
+	(*oppArray)[MLOAD] = Operation{
+		execute:        MLoadOp,
 		stackArgsCount: 1,
 		gasPrice:       midGasPrice,
 		pcJump:         onePCJump,
 	}
-	return
+	return oppArray
+}
+
+func (Map *OperationMapping) getInstruction(index byte) Operation {
+	return Map[index]
 }

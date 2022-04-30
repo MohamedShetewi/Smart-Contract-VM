@@ -1,5 +1,7 @@
 package main
 
+import "strings"
+
 type Stack []DataWord
 
 func newStack() *Stack {
@@ -25,4 +27,20 @@ func (stack *Stack) Pop() *DataWord {
 
 func (stack *Stack) Peek() (*DataWord, bool) {
 	return &(*stack)[(len(*stack) - 1)], !stack.IsEmpty()
+}
+
+func (stack *Stack) Size() int {
+	return len(*stack)
+}
+
+func (stack *Stack) toString() string {
+	str := "Stack -----> \n"
+	spaceCount := len(str)
+
+	for i := len(*stack) - 1; i >= 0; i-- {
+		val := (*stack)[i]
+		str += strings.Repeat(" ", spaceCount)
+		str += "0x" + val.toStringHex() + "\n"
+	}
+	return str
 }

@@ -1,11 +1,10 @@
 package main
 
 type (
-	BasicOperation func(*VMState)
-	PushOperation  func(*VMState, *ContractByteCode)
+	OperationType func(*VMState, *ContractByteCode)
 )
 
-func AddOP(state *VMState) {
+func AddOP(state *VMState, code *ContractByteCode) {
 	stack := state.Stack
 
 	b := stack.Pop()
@@ -14,7 +13,7 @@ func AddOP(state *VMState) {
 	stack.Push(a.Add(b))
 }
 
-func SubOP(state *VMState) {
+func SubOP(state *VMState, code *ContractByteCode) {
 	stack := state.Stack
 
 	b := stack.Pop()
@@ -23,7 +22,7 @@ func SubOP(state *VMState) {
 	stack.Push(a.Sub(b))
 }
 
-func MulOP(state *VMState) {
+func MulOP(state *VMState, code *ContractByteCode) {
 	stack := state.Stack
 
 	b := stack.Pop()
@@ -34,7 +33,7 @@ func MulOP(state *VMState) {
 }
 
 // GreaterOp Return 1 if a > b
-func GreaterOp(state *VMState) {
+func GreaterOp(state *VMState, code *ContractByteCode) {
 	stack := state.Stack
 
 	b := stack.Pop()
@@ -53,7 +52,7 @@ func GreaterOp(state *VMState) {
 	stack.Push(&result)
 }
 
-func XorOP(state *VMState) {
+func XorOP(state *VMState, code *ContractByteCode) {
 	stack := state.Stack
 
 	b := stack.Pop()
@@ -61,7 +60,7 @@ func XorOP(state *VMState) {
 
 	stack.Push(a.Xor(b))
 }
-func AndOP(state *VMState) {
+func AndOP(state *VMState, code *ContractByteCode) {
 	stack := state.Stack
 
 	b := stack.Pop()
@@ -69,7 +68,7 @@ func AndOP(state *VMState) {
 
 	stack.Push(a.And(b))
 }
-func OrOP(state *VMState) {
+func OrOP(state *VMState, code *ContractByteCode) {
 	stack := state.Stack
 
 	b := stack.Pop()
@@ -78,7 +77,7 @@ func OrOP(state *VMState) {
 	stack.Push(a.Or(b))
 }
 
-func NotOP(state *VMState) {
+func NotOP(state *VMState, code *ContractByteCode) {
 	stack := state.Stack
 
 	a := stack.Pop()
@@ -89,22 +88,22 @@ func NotOP(state *VMState) {
 func PushOp(state *VMState, code *ContractByteCode) {
 	stack := state.Stack
 	newData := newDataWord()
-	newData.setDataWord((*code)[state.pc:])
+	newData.setDataWord((*code)[state.pc+1 : state.pc+33])
 	stack.Push(newData)
 }
 
-func PopOp(state *VMState) {
+func PopOp(state *VMState, code *ContractByteCode) {
 	state.Stack.Pop()
 }
 
-func MStoreOp(state *VMState) {
+func MStoreOp(state *VMState, code *ContractByteCode) {
 	mem := state.Memory
 
 	val, index := state.Stack.Pop(), state.Stack.Pop()
 	mem.store(val, index)
 }
 
-func MLoadOp(state *VMState) {
+func MLoadOp(state *VMState, code *ContractByteCode) {
 	mem := state.Memory
 	index := state.Stack.Pop()
 	state.Stack.Push(mem.load(index.toInt()))

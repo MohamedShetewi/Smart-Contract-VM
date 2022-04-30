@@ -13,8 +13,8 @@ func TestDataWord_Mul(t *testing.T) {
 		x := generateDataWord()
 		y := generateDataWord()
 
-		xBigInt, _ := big.NewInt(1).SetString(dataWordToBinary(x), 2)
-		yBigInt, _ := big.NewInt(0).SetString(dataWordToBinary(y), 2)
+		xBigInt, _ := big.NewInt(1).SetString(x.dataWordToBinary(), 2)
+		yBigInt, _ := big.NewInt(0).SetString(y.dataWordToBinary(), 2)
 
 		result := mul(x, y)
 
@@ -39,30 +39,6 @@ func uintArrayToBinary(arr *[16]uint32) string {
 			}
 		}
 	}
-	for i := 0; i < len(result); {
-		if result[i] == '0' {
-			result = result[1:]
-		} else {
-			break
-		}
-	}
-
-	return result
-}
-
-func dataWordToBinary(dataWord *DataWord) string {
-	result := ""
-	for word := 0; word < len(dataWord); word++ {
-		for bit := 0; bit < 32; bit++ {
-
-			if dataWord[word]&(1<<bit) == 0 {
-				result = "0" + result
-			} else {
-				result = "1" + result
-			}
-		}
-	}
-
 	for i := 0; i < len(result); {
 		if result[i] == '0' {
 			result = result[1:]

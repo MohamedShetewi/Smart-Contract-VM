@@ -2,6 +2,27 @@ package main
 
 type OPCODE byte
 
+var opcodeMap = map[string]byte{
+	"ADD":    1,
+	"SUB":    2,
+	"MUL":    3,
+	"DIV":    4,
+	"GT":     5,
+	"LT":     6,
+	"SGT":    7,
+	"SLT":    8,
+	"EQ":     9,
+	"AND":    10,
+	"OR":     11,
+	"NOT":    12,
+	"XOR":    13,
+	"ISZERO": 14,
+	"PUSH":   15,
+	"POP":    16,
+	"MLOAD":  17,
+	"MSTORE": 18,
+}
+
 const (
 	ADD    OPCODE = 0x01
 	SUB    OPCODE = 0x02
