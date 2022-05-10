@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 type ContractByteCode []byte
 
@@ -19,21 +22,25 @@ func (interpreter *Interpreter) execute() error {
 
 	for {
 
-		consumedGas, pc := &interpreter.state.consumedGas, &interpreter.state.pc
+		consumedGas, pc := &interpreter.state.consumedGas, &interpreter.state.Frame.pc
 		gasLimit := interpreter.gasLimit
 
 		if *consumedGas > gasLimit {
-			//outOfGasException
+			return errors.New("out of gas error")
 		}
 
 		curInstruction := (*interpreter.code)[*pc]
 		operationInfo := interpreter.operationMapping.getInstruction(curInstruction)
 
-		if interpreter.state.Stack.Size() < operationInfo.stackArgsCount {
+		if interpreter.state.Frame.Stack.Size() < operationInfo.stackArgsCount {
 			//stack underflow exception
+			return errors.New("stack underflow error")
 		}
 
-		operationInfo.execute(interpreter.state, interpreter.code)
+		err := operationInfo.execute(interpreter.state, interpreter.code)
+		if err != nil {
+			return err
+		}
 
 		*consumedGas += operationInfo.gasPrice
 
@@ -41,11 +48,7 @@ func (interpreter *Interpreter) execute() error {
 
 		fmt.Println(interpreter.state.toString())
 		if int(*pc) >= len(*interpreter.code) {
-			//
-			fmt.Println("IndexOutofBound")
-			return nil
+			return errors.New("cannot reach the code")
 		}
 	}
-
-	return nil
 }

@@ -2,10 +2,34 @@ package main
 
 import "strconv"
 
+type dataType int
+
+const (
+	String  dataType = 0
+	integer dataType = 1
+)
+
+type Message struct {
+	val      string
+	dataType dataType
+}
+type Frame struct {
+	Stack          *Stack
+	pc             uint
+	localVariables []chan Message
+}
+
+func newFrame() *Frame {
+	return &Frame{
+		Stack:          newStack(),
+		pc:             0,
+		localVariables: []chan Message{},
+	}
+}
+
 type VMState struct {
-	Memory      *Memory
-	Stack       *Stack
-	pc          uint
+	Memory      Memory
+	Frame       *Frame
 	consumedGas uint64
 }
 
@@ -13,14 +37,13 @@ func newVM() *VMState {
 
 	return &VMState{
 		Memory:      newMemory(),
-		Stack:       newStack(),
-		pc:          0,
+		Frame:       newFrame(),
 		consumedGas: 0,
 	}
 }
 
 func (vm *VMState) toString() string {
-	return vm.Stack.toString() +
-		"\n" + "PC ---->" + strconv.Itoa(int(vm.pc)) +
+	return vm.Frame.Stack.toString() +
+		"\n" + "PC ---->" + strconv.Itoa(int(vm.Frame.pc)) +
 		"\n" + "Consumed Gas ----->" + strconv.Itoa(int(vm.consumedGas))
 }

@@ -8,9 +8,10 @@ type Operation struct {
 }
 
 const (
-	lowGasPrice  = 2
-	midGasPrice  = 4
-	highGasPrice = 7
+	lowGasPrice       = 2
+	midGasPrice       = 4
+	highGasPrice      = 7
+	superHighGasPrice = 15
 )
 
 const (
@@ -96,6 +97,26 @@ func newInstructionInfo() *OperationMapping {
 		gasPrice:       midGasPrice,
 		pcJump:         onePCJump,
 	}
+	(*oppArray)[JUMP] = Operation{
+		execute:        JumpOp,
+		stackArgsCount: 1,
+		gasPrice:       lowGasPrice,
+		pcJump:         0,
+	}
+	(*oppArray)[JUMPI] = Operation{
+		execute:        JumpIOp,
+		stackArgsCount: 2,
+		gasPrice:       lowGasPrice,
+		pcJump:         0,
+	}
+
+	(*oppArray)[CALLORACLE] = Operation{
+		execute:        OracleOp,
+		stackArgsCount: 4,
+		gasPrice:       superHighGasPrice,
+		pcJump:         1,
+	}
+
 	return oppArray
 }
 

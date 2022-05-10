@@ -22,6 +22,30 @@ func (x *DataWord) setDataWord(byteArr []byte) {
 	}
 }
 
+func intToByte(integer uint32) []uint8 {
+	result := make([]uint8, 4)
+
+	for i := 0; i < 4; i++ {
+		for j := 0; j < 8; j++ {
+			if (1<<(i*8)+j)&int(integer) != 0 {
+				result[i] = result[i] | (1 << j)
+			}
+		}
+	}
+
+	return result
+}
+
+func (x *DataWord) toByteArray() []uint8 {
+
+	result := make([]uint8, 1)
+
+	for i := 0; i < len(*x); i++ {
+		result = append(result, intToByte((*x)[i])...)
+	}
+	return result
+}
+
 func (x *DataWord) dataWordToBinary() string {
 	result := ""
 	for word := 0; word < len(x); word++ {
@@ -43,7 +67,7 @@ func (x *DataWord) toStringHex() string {
 	return fmt.Sprintf("%x", xInHex)
 }
 
-func (x *DataWord) toInt() uint32 {
+func (x *DataWord) toInt32() uint32 {
 	return (*x)[0]
 }
 
@@ -106,9 +130,116 @@ func multiplyHelper(z, x, y, carry uint32) (hi, lo uint32) {
 	return hi, lo
 }
 
-func (x *DataWord) Div(y *DataWord) (result *DataWord) {
+func (x *DataWord) Div(y *DataWord) []uint32 {
 
-	return
+	b := 1 << 32
+	U, V := normalize(x, y)
+
+	fmt.Println()
+	n := len(V)
+	m := len(U)
+
+	t := 0
+	q := make([]uint32, 8)
+
+	for j := m - n - 1; j >= 0; j-- {
+		qHat := (int(U[n+j])*b + int(U[n-1+j])) / int(V[n-1])
+		rHat := (int(U[n+j])*b + int(U[n-1+j])) % int(V[n-1])
+
+		if qHat >= b || qHat*int(V[n-2]) > rHat*b+int(U[j+n-2]) { //
+			qHat--
+			rHat += int(V[n-1])
+		}
+		for rHat < b {
+			if qHat >= b || qHat*int(V[n-2]) > rHat*b+int(U[j+n-2]) { //
+				qHat--
+				rHat += int(V[n-1])
+			}
+		}
+		k := 0
+		for i := 0; i < n; i++ {
+
+			p := qHat * int(V[i])
+
+			t := int(U[i+j]) - k - (p & 0xFFFFFFFF)
+			U[i+j] = uint32(t)
+			k = (p >> 32) - (t >> 32)
+		}
+		t = int(U[j+n]) - k
+		U[j+n] = uint32(t)
+
+		q[j] = uint32(qHat)
+
+		if t < 0 { // If we subtracted too
+			q[j] = q[j] - 1 // much, add back.
+			k = 0
+			for i := 0; i < n; i++ {
+				t = int(U[i+j]) + int(V[i]) + k
+				U[i+j] = uint32(t)
+				k = t >> 32
+			}
+			U[j+n] = U[j+n] + uint32(k)
+		}
+	}
+
+	return q
+}
+
+func main() {
+	u := newDataWord()
+	v := newDataWord()
+
+	u.setUint32(100, 0)
+	u.setUint32(200, 1)
+	v.setUint32(100, 0)
+	v.setUint32(100, 1)
+
+	fmt.Println(u.Div(v))
+}
+
+func normalize(x, y *DataWord) ([]uint32, []uint32) {
+
+	i := len(*y) - 1
+	for ; i >= 0; i-- {
+		if (*y)[i] != 0 {
+			break
+		}
+	}
+	var yWithoutLeadingZeros = make([]uint32, i+1)
+	for j := 0; j < len(yWithoutLeadingZeros); j++ {
+		yWithoutLeadingZeros[j] = (*y)[j]
+	}
+
+	shift := bits.LeadingZeros32(yWithoutLeadingZeros[len(yWithoutLeadingZeros)-1])
+
+	var ynStorage DataWord
+	yn := ynStorage[:i+1]
+
+	for j := i; j > 0; j-- {
+		yn[j] = ((*y)[j] << shift) | (yn[j-1] >> (32 - shift))
+	}
+	yn[0] = (*y)[0] << shift
+
+	i = len(*x) - 1
+	for ; i >= 0; i-- {
+		if (*x)[i] != 0 {
+			break
+		}
+	}
+
+	var unStorage [9]uint32
+	xn := unStorage[:i+2]
+	xn[i+1] = (*x)[i] >> (32 - shift)
+
+	for j := i; j > 0; j-- {
+		xn[j] = ((*x)[j] << shift) | ((*x)[j-1] >> (32 - shift))
+	}
+	xn[0] = (*x)[0] << shift
+
+	fmt.Println(x, xn)
+	fmt.Println(y, yn)
+
+	return xn, yn
 }
 
 func (x *DataWord) Mod(y *DataWord) (result *DataWord) {
